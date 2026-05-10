@@ -822,61 +822,8 @@
     footer { flex-direction: column; text-align: center; }
   }
 
-  /* HERO LOGO */
-  .hero-logo-wrap {
-    position: relative;
-    margin-bottom: 40px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeSlideUp 0.6s ease both;
-  }
-  .hero-logo-img {
-    height: 80px;
-    display: block;
-    filter: drop-shadow(0 0 28px rgba(0,229,255,0.5)) drop-shadow(0 0 60px rgba(26,79,255,0.35));
-    animation: heroLogoFloat 3s ease-in-out infinite;
-    transition: transform 0.4s ease, opacity 0.4s ease, height 0.5s ease;
-    will-change: transform;
-  }
-  .hero-logo-img.tapped {
-    animation: heroLogoTap 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  }
-  @keyframes heroLogoFloat {
-    0%,100% { transform: translateY(0px) rotate(-1deg); }
-    33%     { transform: translateY(-14px) rotate(1deg); }
-    66%     { transform: translateY(-7px) rotate(-0.5deg); }
-  }
-  @keyframes heroLogoTap {
-    0%   { transform: scale(1) rotate(-1deg); }
-    20%  { transform: scale(0.88) rotate(0deg); }
-    50%  { transform: scale(1.15) rotate(2deg); }
-    75%  { transform: scale(0.97) rotate(-1deg); }
-    100% { transform: scale(1) rotate(-1deg); }
-  }
-  /* pulse rings behind logo */
-  .hero-logo-ring {
-    position: absolute;
-    border-radius: 50%;
-    border: 1.5px solid rgba(0,229,255,0.3);
-    pointer-events: none;
-  }
-  .hero-logo-ring:nth-child(1) { width: 110px; height: 110px; animation: logoRing 2.4s ease-in-out infinite 0s; }
-  .hero-logo-ring:nth-child(2) { width: 150px; height: 150px; animation: logoRing 2.4s ease-in-out infinite 0.6s; }
-  .hero-logo-ring:nth-child(3) { width: 190px; height: 190px; animation: logoRing 2.4s ease-in-out infinite 1.2s; }
-  @keyframes logoRing {
-    0%   { opacity: 0.5; transform: scale(0.85); }
-    50%  { opacity: 0.15; transform: scale(1.05); }
-    100% { opacity: 0; transform: scale(1.2); }
-  }
-
-  /* nav logo — hidden initially, appears on scroll */
-  .nav-logo-img {
-    height: 36px; display: block;
-    opacity: 1;
-    transition: opacity 0.4s;
-  }
-  .nav-logo-img.hidden-logo { opacity: 0; pointer-events: none; }
+  /* NFC tap animation trigger */
+  .nfc-tapped .nfc-icon-center svg { filter: drop-shadow(0 0 12px var(--cyan)); }
 
   /* Ambient glow lines */
   .glow-line {
@@ -987,8 +934,9 @@
 <canvas id="particles"></canvas>
 
 <nav>
-  <img src="LOGO_TAPTAPTAG.svg" alt="TapTapTag" class="nav-logo-img" id="navLogoImg">
+  <img src="LOGO_TAPTAPTAG.svg" alt="TapTapTag" style="height:36px;display:block;">
   <div style="display:flex;align-items:center;gap:16px;">
+    <div class="nav-tag">NFC · Tampico · 2026</div>
     <button class="btn-primary" style="padding:10px 22px;font-size:13px" onclick="openGame()">🎮 Jugar</button>
   </div>
 </nav>
@@ -998,14 +946,6 @@
   <div class="tap-badge">
     <div class="tap-dot"></div>
     Tecnología NFC activa
-  </div>
-
-  <!-- BIG HERO LOGO -->
-  <div class="hero-logo-wrap" id="heroLogoWrap">
-    <div class="hero-logo-ring"></div>
-    <div class="hero-logo-ring"></div>
-    <div class="hero-logo-ring"></div>
-    <img src="LOGO_TAPTAPTAG.svg" alt="TapTapTag" class="hero-logo-img" id="heroLogoImg">
   </div>
 
   <canvas id="card3d"></canvas>
@@ -1383,23 +1323,11 @@
       ctx.beginPath(); ctx.moveTo(80,420+28); ctx.lineTo(80+110,420+28); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(80,420+57); ctx.lineTo(80+110,420+57); ctx.stroke();
 
-      // Logo image on card (load SVG)
-      const logoImg = new Image();
-      logoImg.onload = function() {
-        // Place logo top-left area of card
-        // Target area: x=60, y=50, w=320, h=100
-        ctx.drawImage(logoImg, 60, 50, 340, 108);
-        frontTex.needsUpdate = true;
-      };
-      logoImg.onerror = function() {
-        // Fallback text if SVG fails
-        ctx.font = 'bold 72px Arial'; ctx.fillStyle = '#ffffff';
-        ctx.fillText('TapTap', 80, 120);
-        ctx.fillStyle = '#00E5FF';
-        ctx.fillText('Tag', 80 + ctx.measureText('TapTap').width, 120);
-        frontTex.needsUpdate = true;
-      };
-      logoImg.src = 'LOGO_TAPTAPTAG.svg';
+      // Logo text
+      ctx.font = 'bold 72px Arial'; ctx.fillStyle = '#ffffff';
+      ctx.fillText('TapTap', 80, 120);
+      ctx.fillStyle = '#00E5FF';
+      ctx.fillText('Tag', 80 + ctx.measureText('TapTap').width, 120);
 
       // Tagline
       ctx.font = '28px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -1484,53 +1412,6 @@
     renderer.render(scene, camera);
   }
   animate3d();
-})();
-
-// ── HERO LOGO: tap burst + scroll-to-nav ──────────────────────────────
-(function(){
-  const heroLogoImg  = document.getElementById('heroLogoImg');
-  const heroLogoWrap = document.getElementById('heroLogoWrap');
-  const navLogoImg   = document.getElementById('navLogoImg');
-  const hero         = document.getElementById('hero');
-
-  // Start with nav logo hidden (hero logo visible)
-  navLogoImg.classList.add('hidden-logo');
-
-  // Scroll: swap logos
-  function onScroll(){
-    const heroBottom = hero.getBoundingClientRect().bottom;
-    const threshold  = 100; // px from viewport top
-    if(heroBottom < threshold){
-      navLogoImg.classList.remove('hidden-logo');
-    } else {
-      navLogoImg.classList.add('hidden-logo');
-    }
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  // Tap/click: trigger bounce animation
-  function tapLogo(e){
-    e.stopPropagation();
-    heroLogoImg.classList.remove('tapped');
-    void heroLogoImg.offsetWidth; // reflow to restart
-    heroLogoImg.classList.add('tapped');
-    heroLogoImg.addEventListener('animationend', ()=>{
-      heroLogoImg.classList.remove('tapped');
-    }, { once: true });
-  }
-  heroLogoWrap.addEventListener('click', tapLogo);
-  heroLogoWrap.addEventListener('touchstart', tapLogo, { passive: true });
-
-  // Auto-tap every 4s to show it's interactive
-  let autoTapTimer = setInterval(()=>{
-    if(hero.getBoundingClientRect().bottom < 0) return; // don't animate when off screen
-    heroLogoImg.classList.remove('tapped');
-    void heroLogoImg.offsetWidth;
-    heroLogoImg.classList.add('tapped');
-    heroLogoImg.addEventListener('animationend', ()=>{
-      heroLogoImg.classList.remove('tapped');
-    }, { once: true });
-  }, 4000);
 })();
 
 // ── TAP COMIC EFFECT ──
