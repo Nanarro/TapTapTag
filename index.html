@@ -860,7 +860,9 @@
   <h2 class="section-title" style="font-size:clamp(24px,3vw,36px)">Quiénes somos</h2>
   <div class="founders-grid">
     <div class="founder-card">
-      <div class="founder-avatar gm">GM</div>
+      <div class="founder-avatar gm" style="background:transparent;overflow:hidden;padding:0;">
+        <img src="logo.png" alt="Genaro Mateos" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+      </div>
       <div class="founder-info">
         <div class="founder-name">Genaro Mateos</div>
         <div class="founder-role">Co-Fundador · CEO</div>
@@ -868,7 +870,9 @@
       </div>
     </div>
     <div class="founder-card">
-      <div class="founder-avatar sb">SB</div>
+      <div class="founder-avatar sb" style="background:transparent;overflow:hidden;padding:0;">
+        <img src="1778443614159__73EAF8CC-413C-4239-BB97-1DFE42DABDDC_.png" alt="Said Balderas" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+      </div>
       <div class="founder-info">
         <div class="founder-name">Said Balderas</div>
         <div class="founder-role">Co-Fundador · COO</div>
@@ -1303,18 +1307,32 @@ const modals = {
   contacto: {
     icon:'📲', title:'¡Hagámoslo realidad!',
     desc:'Escríbenos por WhatsApp para cotizar tu pedido. Producción en 48 horas, entrega en Tampico y zona metropolitana.',
-    price:'TapTapTag.com', sub:'Tampico, Tamaulipas · @TapTapTag'
+    price:'', sub:'Tampico, Tamaulipas · @TapTapTag'
   }
 };
 function openModal(type){
   const m = modals[type];
+  const isContacto = type === 'contacto';
   document.getElementById('modalContent').innerHTML = `
     <div style="font-size:48px;margin-bottom:16px">${m.icon}</div>
     <h3>${m.title}</h3>
     <p>${m.desc}</p>
-    <div class="modal-price">${m.price}</div>
+    ${m.price ? `<div class="modal-price">${m.price}</div>` : ''}
     <div class="modal-price-sub">${m.sub}</div>
-    <button class="btn-primary" style="width:100%" onclick="closeModal()">¡Lo quiero! →</button>
+    ${isContacto ? `
+      <a href="https://web.telegram.org/k/#@Saisio" target="_blank" rel="noopener"
+         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+                background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;border:none;
+                padding:14px 32px;border-radius:100px;font-family:'Syne',sans-serif;
+                font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;
+                box-shadow:0 0 24px rgba(0,136,204,0.4);margin-bottom:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.32 14.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z"/></svg>
+        Escríbenos en Telegram
+      </a>
+      <button class="btn-primary" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);box-shadow:none;" onclick="closeModal()">Cerrar</button>
+    ` : `
+      <button class="btn-primary" style="width:100%" onclick="closeModal()">¡Lo quiero! →</button>
+    `}
   `;
   document.getElementById('modalBg').classList.add('open');
 }
